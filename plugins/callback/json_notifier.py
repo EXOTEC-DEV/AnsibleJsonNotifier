@@ -98,7 +98,6 @@ class CallbackModule(CallbackBase):
             "name": play.get_name(),
         }
         self.send_msg(event)
-        print(json.dumps(event, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
     def v2_runner_on_start(self, host, task):
         event = {
@@ -111,7 +110,6 @@ class CallbackModule(CallbackBase):
             "host": host.get_name(),
         }
         self.send_msg(event)
-        print(json.dumps(event, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
     def v2_playbook_on_task_start(self, task, is_conditional):
         event = {
@@ -123,7 +121,6 @@ class CallbackModule(CallbackBase):
             "start": current_time(),
         }
         self.send_msg(event)
-        print(json.dumps(event, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
     def v2_playbook_on_handler_task_start(self, task):
         event = {
@@ -136,7 +133,6 @@ class CallbackModule(CallbackBase):
             "notified_host": [host.get_name() for host in task.notified_hosts],
         }
         self.send_msg(event)
-        print(json.dumps(event, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
     def v2_playbook_on_stats(self, stats):
         hosts = sorted(stats.processed.keys())
@@ -148,7 +144,6 @@ class CallbackModule(CallbackBase):
 
         event = {"type": "playbook_end", "end": current_time(), "result": summary}
         self.send_msg(event)
-        print(json.dumps(event, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
     def _record_task_result(self, on_info, result, **kwargs):
         host = result._host
@@ -169,7 +164,6 @@ class CallbackModule(CallbackBase):
             "result": result_copy,
         }
         self.send_msg(event)
-        print(json.dumps(event, cls=AnsibleJSONEncoder, indent=2, sort_keys=True))
 
     def __getattribute__(self, name):
         """Return ``_record_task_result`` partial with a dict containing skipped/failed if necessary"""
