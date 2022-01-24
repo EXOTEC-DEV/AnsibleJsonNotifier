@@ -34,7 +34,6 @@ import datetime
 import json
 from functools import partial
 
-from ansible.inventory.host import Host
 from ansible.module_utils._text import to_text
 from ansible.module_utils.urls import open_url
 from ansible.parsing.ajson import AnsibleJSONEncoder
