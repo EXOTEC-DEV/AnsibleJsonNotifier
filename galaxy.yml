@@ -1,0 +1,12 @@
+---
+authors:
+  - Exotec
+  - Jérôme Boulmier <jerome.boulmier@exotec.com>
+license_file: LICENSE
+name: "utils"
+namespace: "exotec.utils"
+description: Ansible callback plugin that send output to an http endpoint.
+readme: README.md
+version: "1.0.0"
+build_ignore:
+  - .gitignore
