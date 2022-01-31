@@ -177,7 +177,8 @@ class CallbackModule(CallbackBase):
         on = name.rsplit("_", 1)[1]
 
         on_info = {}
-        if on in ("failed", "skipped"):
+        # unreachable is already in the dict.
+        if on in ("failed", "skipped", "ok"):
             on_info[on] = True
 
         return partial(self._record_task_result, on_info)
