@@ -41,7 +41,7 @@ from ansible.plugins.callback import CallbackBase
 
 
 def current_time():
-    return "%sZ" % datetime.datetime.utcnow().isoformat()
+    return "%sZ" % datetime.now(timezone.utc).isoformat()
 
 
 class CallbackModule(CallbackBase):
