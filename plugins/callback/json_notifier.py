@@ -30,7 +30,7 @@ DOCUMENTATION = """
             section: callback_json_notifier
 """
 
-import datetime
+from datetime import datetime, timezone
 import json
 from functools import partial
 
@@ -41,7 +41,7 @@ from ansible.plugins.callback import CallbackBase
 
 
 def current_time():
-    return "%sZ" % datetime.datetime.utcnow().isoformat()
+    return "%sZ" % datetime.now(timezone.utc).isoformat()
 
 
 class CallbackModule(CallbackBase):
