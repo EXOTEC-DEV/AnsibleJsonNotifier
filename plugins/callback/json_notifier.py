@@ -30,7 +30,7 @@ DOCUMENTATION = """
             section: callback_json_notifier
 """
 
-import datetime
+from datetime import datetime, timezone
 import json
 from functools import partial
 
