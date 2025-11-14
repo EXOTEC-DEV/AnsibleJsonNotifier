@@ -85,7 +85,7 @@ class CallbackModule(CallbackBase):
             return response.read()
         except Exception as e:
             self._display.warning(
-                u"Could not submit message to webhook: %s" % to_text(e)
+                "Could not submit message to webhook: %s" % to_text(e)
             )
 
     def v2_playbook_on_play_start(self, play):
@@ -151,6 +151,13 @@ class CallbackModule(CallbackBase):
         result_copy = result._result.copy()
         result_copy.update(on_info)
         result_copy["action"] = task.action
+
+        if (
+            hasattr(task, "ignore_errors")
+            and task.ignore_errors
+            and on_info.get("failed")
+        ):
+            result_copy["ignored"] = True
 
         event = {
             "type": "task_host_end",
