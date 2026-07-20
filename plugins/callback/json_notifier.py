@@ -181,9 +181,9 @@ class CallbackModule(CallbackBase):
         ):
             result_copy["ignored"] = True
 
-        # For OK/SKIPPED tasks, drop the verbose STDOUT/STDERR from the payload
-        # sent to the deployer API while keeping the task name and its state.
-        api_result = result_copy
+        # For OK/SKIPPED tasks, drop verbose output/debug fields (e.g. stdout/stderr,
+        # invocation metadata, diff) from the payload sent to the deployer API while
+        # keeping the task name and its state.
         if strip_verbose:
             api_result = {k: v for k, v in result_copy.items() if k not in self._VERBOSE_KEYS}
 
