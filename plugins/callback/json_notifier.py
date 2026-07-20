@@ -28,6 +28,17 @@ DOCUMENTATION = """
         ini:
           - key: json_webhook_url
             section: callback_json_notifier
+      json_verbose:
+        required: False
+        name: JSON verbose task output
+        description: 'When true, send every task to the API with full STDOUT/STDERR, including skipped tasks (debug only)'
+        type: bool
+        default: False
+        env:
+          - name: JSON_VERBOSE
+        ini:
+          - key: json_verbose
+            section: callback_json_notifier
 """
 
 from datetime import datetime, timezone
@@ -50,10 +61,20 @@ class CallbackModule(CallbackBase):
     CALLBACK_NAME = "exotec.utils.json_notifier"
     CALLBACK_NEEDS_WHITELIST = True
 
+    # Verbose keys (task STDOUT/STDERR) removed from the payload sent to the
+    # deployer API for OK/SKIPPED tasks. We keep status/state keys (ok, failed,
+    # skipped, unreachable, ignored, changed, action) and functional data such as
+    # `ansible_facts` and `results` untouched so the deployer logic keeps working.
+    _VERBOSE_KEYS = (
+        "stdout", "stderr", "stdout_lines", "stderr_lines",
+        "module_stdout", "module_stderr", "invocation", "diff",
+    )
+
     def __init__(self, display=None):
         super(CallbackModule, self).__init__(display)
         self._last_play = None
         self._callback_url: Optional[str] = None
+        self._verbose = False
 
     def set_options(self, task_keys=None, var_options=None, direct=None):
 
@@ -62,6 +83,7 @@ class CallbackModule(CallbackBase):
         )
 
         self._callback_url = self.get_option("json_webhook_url")
+        self._verbose = bool(self.get_option("json_verbose"))
 
         if self._callback_url is None:
             self.disabled = True
@@ -144,7 +166,7 @@ class CallbackModule(CallbackBase):
         event = {"type": "playbook_end", "end": current_time(), "result": summary}
         self.send_msg(event)
 
-    def _record_task_result(self, on_info, result, **kwargs):
+    def _record_task_result(self, on_info, result, strip_verbose=False, skip_send=False, **kwargs):
         host = result._host
         task = result._task
 
@@ -159,6 +181,12 @@ class CallbackModule(CallbackBase):
         ):
             result_copy["ignored"] = True
 
+        # For OK/SKIPPED tasks, drop the verbose STDOUT/STDERR from the payload
+        # sent to the deployer API while keeping the task name and its state.
+        api_result = result_copy
+        if strip_verbose:
+            api_result = {k: v for k, v in result_copy.items() if k not in self._VERBOSE_KEYS}
+
         event = {
             "type": "task_host_end",
             "play": self._last_play,
@@ -167,9 +195,12 @@ class CallbackModule(CallbackBase):
             "name": task.get_name(),
             "end": current_time(),
             "host": host.get_name(),
-            "result": result_copy,
+            "result": api_result,
         }
-        self.send_msg(event)
+        # Skipped tasks are not sent to the deployer API unless verbose debug
+        # mode is enabled.
+        if not skip_send:
+            self.send_msg(event)
 
     def __getattribute__(self, name):
         """Return ``_record_task_result`` partial with a dict containing skipped/failed if necessary"""
@@ -188,4 +219,12 @@ class CallbackModule(CallbackBase):
         if on in ("failed", "skipped", "ok"):
             on_info[on] = True
 
-        return partial(self._record_task_result, on_info)
+        verbose = object.__getattribute__(self, "_verbose")
+        # Only OK and SKIPPED tasks have their STDOUT/STDERR stripped from the
+        # payload sent to the deployer API, unless verbose debug mode is enabled.
+        strip_verbose = on in ("ok", "skipped") and not verbose
+        # Skipped tasks are not sent to the deployer API at all, unless verbose
+        # debug mode is enabled.
+        skip_send = on == "skipped" and not verbose
+
+        return partial(self._record_task_result, on_info, strip_verbose=strip_verbose, skip_send=skip_send)
