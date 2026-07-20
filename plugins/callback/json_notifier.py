@@ -61,10 +61,10 @@ class CallbackModule(CallbackBase):
     CALLBACK_NAME = "exotec.utils.json_notifier"
     CALLBACK_NEEDS_WHITELIST = True
 
-    # Verbose keys (task STDOUT/STDERR) removed from the payload sent to the
-    # deployer API for OK/SKIPPED tasks. We keep status/state keys (ok, failed,
-    # skipped, unreachable, ignored, changed, action) and functional data such as
-    # `ansible_facts` and `results` untouched so the deployer logic keeps working.
+    # Verbose keys (task output / debug details like stdout/stderr, invocation, diff)
+    # are removed from the payload sent to the deployer API for OK/SKIPPED tasks.
+    # We keep status/state keys (ok, failed, skipped, unreachable, ignored, changed,
+    # action) and functional data such as `ansible_facts` and `results` untouched so the deployer logic keeps working.
     _VERBOSE_KEYS = (
         "stdout", "stderr", "stdout_lines", "stderr_lines",
         "module_stdout", "module_stderr", "invocation", "diff",
