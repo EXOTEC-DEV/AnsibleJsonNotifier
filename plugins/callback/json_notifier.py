@@ -186,6 +186,8 @@ class CallbackModule(CallbackBase):
         # keeping the task name and its state.
         if strip_verbose:
             api_result = {k: v for k, v in result_copy.items() if k not in self._VERBOSE_KEYS}
+        else:
+            api_result = result_copy
 
         event = {
             "type": "task_host_end",
